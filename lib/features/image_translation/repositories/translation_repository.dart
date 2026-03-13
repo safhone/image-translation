@@ -19,24 +19,32 @@ class TranslationRepository {
 
     final result = await ocrService.detectText(image);
 
-    List<TextOverlay> overlays = [];
+    List<String> texts = [];
+    List<Rect> rects = [];
 
     for (var block in result.blocks) {
       for (var line in block.lines) {
-        final translated = await translationService.translate(
-          text: line.text,
-          source: source,
-          target: target,
-        );
-
-        overlays.add(
-          TextOverlay(
-            translated: translated,
-            rect: line.boundingBox,
-            imageSize: imageSize,
-          ),
-        );
+        texts.add(line.text);
+        rects.add(line.boundingBox);
       }
+    }
+
+    final translatedTexts = await translationService.translateBatch(
+      texts,
+      source,
+      target,
+    );
+
+    List<TextOverlay> overlays = [];
+
+    for (int i = 0; i < translatedTexts.length; i++) {
+      overlays.add(
+        TextOverlay(
+          translated: translatedTexts[i],
+          rect: rects[i],
+          imageSize: imageSize,
+        ),
+      );
     }
 
     return overlays;

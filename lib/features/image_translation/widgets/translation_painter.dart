@@ -40,8 +40,9 @@ class TranslationPainter extends CustomPainter {
             fontWeight: FontWeight.w500,
           ),
         ),
+        textAlign: TextAlign.left,
         textDirection: TextDirection.ltr,
-        maxLines: 3,
+        maxLines: null,
       );
 
       textPainter.layout(maxWidth: rect.width);

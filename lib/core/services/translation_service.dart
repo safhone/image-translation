@@ -11,58 +11,70 @@ class TranslationService {
     await modelManager.downloadModel(source);
     await modelManager.downloadModel(target);
 
-    TranslateLanguage src;
-    TranslateLanguage tgt;
+    TranslateLanguage src = source == "zh"
+        ? TranslateLanguage.chinese
+        : TranslateLanguage.english;
 
-    if (source == "zh") {
-      src = TranslateLanguage.chinese;
-    } else {
-      src = TranslateLanguage.english;
-    }
-
-    if (target == "zh") {
-      tgt = TranslateLanguage.chinese;
-    } else {
-      tgt = TranslateLanguage.english;
-    }
+    TranslateLanguage tgt = target == "zh"
+        ? TranslateLanguage.chinese
+        : TranslateLanguage.english;
 
     _translator?.close();
 
     _translator = OnDeviceTranslator(sourceLanguage: src, targetLanguage: tgt);
   }
 
-  Future<String> translate({
-    required String text,
-    required String source,
-    required String target,
-  }) async {
-    /// Khmer → Google API
-    if (source == "km" || target == "km") {
-      return await _translateAPI(text, source, target);
-    }
-
-    /// Initialize correct translator
-    await initMLKit(source, target);
-
-    return await _translator!.translateText(text);
-  }
-
-  Future<String> _translateAPI(
-    String text,
+  Future<List<String>> translateBatch(
+    List<String> texts,
     String source,
     String target,
   ) async {
-    const apiKey = "";
+    /// Khmer translation → API
+    if (source == "km" || target == "km") {
+      return await _translateBatchAPI(texts, source, target);
+    }
+
+    /// MLKit offline
+    await initMLKit(source, target);
+
+    List<String> results = [];
+
+    for (var text in texts) {
+      final translated = await _translator!.translateText(text);
+      results.add(translated);
+    }
+
+    return results;
+  }
+
+  Future<List<String>> _translateBatchAPI(
+    List<String> texts,
+    String source,
+    String target,
+  ) async {
+    const apiKey = "AIzaSyCldJS5v_vKiqBEFVBDqYMA2Nxf7xthWyc";
+
+    /// unique separator unlikely to appear in text
+    const separator = "|||SEP|||";
+
+    final joinedText = texts.join(separator);
 
     final response = await http.post(
       Uri.parse(
         "https://translation.googleapis.com/language/translate/v2?key=$apiKey",
       ),
-      body: {"q": text, "source": source, "target": target, "format": "text"},
+      body: {
+        "q": joinedText,
+        "source": source,
+        "target": target,
+        "format": "text",
+      },
     );
 
     final data = jsonDecode(response.body);
 
-    return data["data"]["translations"][0]["translatedText"];
+    final translated = data["data"]["translations"][0]["translatedText"];
+
+    return translated.split(separator);
   }
 }

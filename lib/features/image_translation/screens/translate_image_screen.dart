@@ -73,41 +73,75 @@ class TranslateImageScreen extends StatelessWidget {
         },
         child: const Icon(Icons.image),
       ),
-      body: Center(
-        child: controller.image == null
-            ? const Text("Pick an image")
-            : LayoutBuilder(
-                builder: (context, constraints) {
-                  return FittedBox(
-                    fit: BoxFit.contain,
-                    child: SizedBox(
-                      width: controller.overlays.isNotEmpty
-                          ? controller.overlays.first.imageSize.width
-                          : constraints.maxWidth,
-                      height: controller.overlays.isNotEmpty
-                          ? controller.overlays.first.imageSize.height
-                          : constraints.maxHeight,
-                      child: Stack(
-                        children: [
-                          Image.file(controller.image!, fit: BoxFit.fill),
+      body: Stack(
+        children: [
+          Center(
+            child: controller.image == null
+                ? const Text("Pick an image")
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      return FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(
+                          width: controller.overlays.isNotEmpty
+                              ? controller.overlays.first.imageSize.width
+                              : constraints.maxWidth,
+                          height: controller.overlays.isNotEmpty
+                              ? controller.overlays.first.imageSize.height
+                              : constraints.maxHeight,
+                          child: Stack(
+                            children: [
+                              Image.file(controller.image!, fit: BoxFit.fill),
 
-                          CustomPaint(
-                            size: Size(
-                              controller.overlays.isNotEmpty
-                                  ? controller.overlays.first.imageSize.width
-                                  : constraints.maxWidth,
-                              controller.overlays.isNotEmpty
-                                  ? controller.overlays.first.imageSize.height
-                                  : constraints.maxHeight,
-                            ),
-                            painter: TranslationPainter(controller.overlays),
+                              CustomPaint(
+                                size: Size(
+                                  controller.overlays.isNotEmpty
+                                      ? controller
+                                            .overlays
+                                            .first
+                                            .imageSize
+                                            .width
+                                      : constraints.maxWidth,
+                                  controller.overlays.isNotEmpty
+                                      ? controller
+                                            .overlays
+                                            .first
+                                            .imageSize
+                                            .height
+                                      : constraints.maxHeight,
+                                ),
+                                painter: TranslationPainter(
+                                  controller.overlays,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+
+          if (controller.loading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.3),
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 12),
+                      Text(
+                        "Translating...",
+                        style: TextStyle(color: Colors.white),
                       ),
-                    ),
-                  );
-                },
+                    ],
+                  ),
+                ),
               ),
+            ),
+        ],
       ),
     );
   }
