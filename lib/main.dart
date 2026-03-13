@@ -12,8 +12,6 @@ Future<void> main() async {
 
   final translationService = TranslationService();
 
-  await translationService.init();
-
   final repository = TranslationRepository(OCRService(), translationService);
 
   runApp(MyApp(repository));

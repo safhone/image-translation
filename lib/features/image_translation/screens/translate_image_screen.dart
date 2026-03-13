@@ -25,7 +25,42 @@ class TranslateImageScreen extends StatelessWidget {
     final controller = context.watch<TranslationController>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Image Translation")),
+      appBar: AppBar(
+        title: const Text("Image Translation"),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.language),
+            onSelected: (value) async {
+              final controller = context.read<TranslationController>();
+
+              if (value == "zh_en") {
+                await controller.changeLanguage("zh", "en");
+              }
+
+              if (value == "en_zh") {
+                await controller.changeLanguage("en", "zh");
+              }
+
+              if (value == "zh_km") {
+                await controller.changeLanguage("zh", "km");
+              }
+
+              if (value == "en_km") {
+                await controller.changeLanguage("en", "km");
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: "zh_en", child: Text("Chinese → English")),
+
+              PopupMenuItem(value: "en_zh", child: Text("English → Chinese")),
+
+              PopupMenuItem(value: "zh_km", child: Text("Chinese → Khmer")),
+
+              PopupMenuItem(value: "en_km", child: Text("English → Khmer")),
+            ],
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final controller = context.read<TranslationController>();

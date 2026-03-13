@@ -15,13 +15,27 @@ class TranslationController extends ChangeNotifier {
 
   bool loading = false;
 
+  String sourceLang = "zh";
+  String targetLang = "en";
+
+  Future<void> changeLanguage(String source, String target) async {
+    sourceLang = source;
+    targetLang = target;
+
+    if (image != null) {
+      await translateImage(image!);
+    }
+
+    notifyListeners();
+  }
+
   Future<void> translateImage(File file) async {
     image = file;
 
     loading = true;
     notifyListeners();
 
-    overlays = await repository.processImage(file);
+    overlays = await repository.processImage(file, sourceLang, targetLang);
 
     loading = false;
     notifyListeners();
