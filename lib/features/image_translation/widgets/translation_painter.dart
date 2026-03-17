@@ -23,37 +23,41 @@ class TranslationPainter extends CustomPainter {
         overlay.rect.bottom * scaleY,
       );
 
-      // Background box
-      final bg = Paint()..color = Colors.white.withValues(alpha: 0.9);
+      /// ignore extremely small OCR boxes
+      if (rect.width < 20 || rect.height < 10) continue;
 
+      /// background
+      final bg = Paint()..color = Colors.white.withValues(alpha: 0.9);
       canvas.drawRect(rect, bg);
 
-      // Dynamic font size based on box height
-      double fontSize = rect.height * 0.6;
+      /// start with large font
+      double fontSize = rect.height;
 
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: overlay.translated,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: fontSize,
-            fontWeight: FontWeight.w500,
+      TextPainter textPainter;
+
+      while (true) {
+        textPainter = TextPainter(
+          text: TextSpan(
+            text: overlay.translated,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: fontSize,
+              height: 1.2,
+            ),
           ),
-        ),
-        textDirection: TextDirection.ltr,
-        maxLines: 3,
-      );
-
-      textPainter.layout(maxWidth: rect.width);
-
-      // If text is too big, shrink it
-      while (textPainter.height > rect.height && fontSize > 6) {
-        fontSize -= 1;
-        textPainter.text = TextSpan(
-          text: overlay.translated,
-          style: TextStyle(color: Colors.black, fontSize: fontSize),
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr,
+          maxLines: null,
         );
+
         textPainter.layout(maxWidth: rect.width);
+
+        /// stop when text fits
+        if (textPainter.height <= rect.height || fontSize < 10) {
+          break;
+        }
+
+        fontSize -= 1;
       }
 
       textPainter.paint(canvas, Offset(rect.left, rect.top));
