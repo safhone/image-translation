@@ -22,10 +22,14 @@ class TranslationController extends ChangeNotifier {
     sourceLang = source;
     targetLang = target;
 
+    loading = true;
+    notifyListeners();
+
     if (image != null) {
       await translateImage(image!);
     }
 
+    loading = false;
     notifyListeners();
   }
 

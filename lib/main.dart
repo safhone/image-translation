@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:imagetranslation/features/image_translation/controllers/translation_controller.dart';
 import 'package:imagetranslation/features/image_translation/repositories/translation_repository.dart';
 import 'package:imagetranslation/features/image_translation/screens/translate_image_screen.dart';
@@ -9,6 +10,8 @@ import 'core/services/translation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
 
   final translationService = TranslationService();
 

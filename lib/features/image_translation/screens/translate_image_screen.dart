@@ -48,6 +48,14 @@ class TranslateImageScreen extends StatelessWidget {
               if (value == "en_km") {
                 await controller.changeLanguage("en", "km");
               }
+
+              if (value == "km_en") {
+                await controller.changeLanguage("km", "en");
+              }
+
+              if (value == "km_zh") {
+                await controller.changeLanguage("km", "zh");
+              }
             },
             itemBuilder: (context) => const [
               PopupMenuItem(value: "zh_en", child: Text("Chinese → English")),
@@ -57,6 +65,10 @@ class TranslateImageScreen extends StatelessWidget {
               PopupMenuItem(value: "zh_km", child: Text("Chinese → Khmer")),
 
               PopupMenuItem(value: "en_km", child: Text("English → Khmer")),
+
+              PopupMenuItem(value: "km_en", child: Text("Khmer → English")),
+
+              PopupMenuItem(value: "km_zh", child: Text("Khmer → Chinese")),
             ],
           ),
         ],
@@ -73,41 +85,50 @@ class TranslateImageScreen extends StatelessWidget {
         },
         child: const Icon(Icons.image),
       ),
-      body: Center(
-        child: controller.image == null
-            ? const Text("Pick an image")
-            : LayoutBuilder(
-                builder: (context, constraints) {
-                  return FittedBox(
-                    fit: BoxFit.contain,
-                    child: SizedBox(
-                      width: controller.overlays.isNotEmpty
-                          ? controller.overlays.first.imageSize.width
-                          : constraints.maxWidth,
-                      height: controller.overlays.isNotEmpty
-                          ? controller.overlays.first.imageSize.height
-                          : constraints.maxHeight,
-                      child: Stack(
-                        children: [
-                          Image.file(controller.image!, fit: BoxFit.fill),
-
-                          CustomPaint(
-                            size: Size(
-                              controller.overlays.isNotEmpty
-                                  ? controller.overlays.first.imageSize.width
-                                  : constraints.maxWidth,
-                              controller.overlays.isNotEmpty
-                                  ? controller.overlays.first.imageSize.height
-                                  : constraints.maxHeight,
-                            ),
-                            painter: TranslationPainter(controller.overlays),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+      body: Stack(
+        children: [
+          Center(
+            child: controller.image == null
+                ? const Text("Pick an image")
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Center(
+                        child: controller.overlays.isEmpty
+                            ? Image.file(controller.image!)
+                            : AspectRatio(
+                                aspectRatio:
+                                    controller.overlays.first.imageSize.width /
+                                    controller.overlays.first.imageSize.height,
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: Image.file(
+                                        controller.image!,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: CustomPaint(
+                                        painter: TranslationPainter(
+                                          controller.overlays,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                      );
+                    },
+                  ),
+          ),
+          if (controller.loading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.4),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
               ),
+            ),
+        ],
       ),
     );
   }

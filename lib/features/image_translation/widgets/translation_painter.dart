@@ -15,7 +15,7 @@ class TranslationPainter extends CustomPainter {
     final scaleX = size.width / imageSize.width;
     final scaleY = size.height / imageSize.height;
 
-    for (var overlay in overlays) {
+    for (final overlay in overlays) {
       final rect = Rect.fromLTRB(
         overlay.rect.left * scaleX,
         overlay.rect.top * scaleY,
@@ -23,47 +23,110 @@ class TranslationPainter extends CustomPainter {
         overlay.rect.bottom * scaleY,
       );
 
-      /// ignore extremely small OCR boxes
-      if (rect.width < 20 || rect.height < 10) continue;
+      final expandedRect = rect.inflate(6);
 
-      /// background
-      final bg = Paint()..color = Colors.white.withValues(alpha: 0.9);
-      canvas.drawRect(rect, bg);
-
-      /// start with large font
-      double fontSize = rect.height;
-
-      TextPainter textPainter;
-
-      while (true) {
-        textPainter = TextPainter(
-          text: TextSpan(
-            text: overlay.translated,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: fontSize,
-              height: 1.2,
-            ),
-          ),
-          textAlign: TextAlign.left,
-          textDirection: TextDirection.ltr,
-          maxLines: null,
-        );
-
-        textPainter.layout(maxWidth: rect.width);
-
-        /// stop when text fits
-        if (textPainter.height <= rect.height || fontSize < 10) {
-          break;
-        }
-
-        fontSize -= 1;
+      if (expandedRect.width <= 2 ||
+          expandedRect.height <= 2 ||
+          !expandedRect.width.isFinite ||
+          !expandedRect.height.isFinite) {
+        debugPrint("expandedRect: $expandedRect");
+        continue;
       }
 
-      textPainter.paint(canvas, Offset(rect.left, rect.top));
+      _drawTextBox(canvas, expandedRect, overlay.translated);
     }
   }
 
+  void _drawTextBox(Canvas canvas, Rect rect, String text) {
+    if (text.trim().isEmpty) return;
+
+    final rRect = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+
+    final paint = Paint()..color = Colors.white.withValues(alpha: 0.9);
+
+    canvas.drawShadow(
+      Path()..addRRect(rRect),
+      Colors.black.withValues(alpha: 0.2),
+      4,
+      false,
+    );
+
+    canvas.drawRRect(rRect, paint);
+
+    final paddedRect = Rect.fromLTRB(
+      rect.left + 4,
+      rect.top + 4,
+      rect.right - 4,
+      rect.bottom - 4,
+    );
+
+    if (paddedRect.width <= 2 ||
+        paddedRect.height <= 2 ||
+        !paddedRect.width.isFinite ||
+        !paddedRect.height.isFinite) {
+      debugPrint("paddedRect: $paddedRect");
+      return;
+    }
+
+    final safeWidth = paddedRect.width.isFinite && paddedRect.width > 0
+        ? paddedRect.width
+        : 10;
+
+    double minFont = 8;
+    double maxFont = paddedRect.height.clamp(10, 40);
+    double best = minFont;
+
+    while ((maxFont - minFont) > 1) {
+      double mid = (maxFont + minFont) / 2;
+
+      final tp = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: mid,
+            height: 1.3,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+
+      tp.layout(maxWidth: safeWidth.toDouble());
+
+      if (tp.height <= paddedRect.height) {
+        best = mid;
+        minFont = mid;
+      } else {
+        maxFont = mid;
+      }
+    }
+
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: best,
+          height: 1.3,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+
+    painter.layout(maxWidth: safeWidth.toDouble());
+
+    final offset = Offset(
+      paddedRect.left + (paddedRect.width - painter.width) / 2,
+      paddedRect.top + (paddedRect.height - painter.height) / 2,
+    );
+
+    painter.paint(canvas, offset);
+  }
+
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
