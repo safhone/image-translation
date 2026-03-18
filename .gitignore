@@ -434,4 +434,6 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
+.env
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,xcode,androidstudio,visualstudiocode,flutter,swift,objective-c,kotlin,cocoapods
